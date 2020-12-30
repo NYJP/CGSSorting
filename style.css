@@ -1,0 +1,21 @@
+header{
+    background-color: black;
+    color: white;
+    /*height:120px;*/
+    text-align: CENTER;
+    border-style: solid;
+    border-color: black;
+}
+body{
+    font-family: sans-serif;
+    background-color: lightgrey;
+}
+#results{
+    background-color: white;
+    height: 250px;
+    border-style: solid;
+    border-width: 5px;
+    border-color:black;
+    padding: 5px;
+
+}
