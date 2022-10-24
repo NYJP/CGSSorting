@@ -1,14 +1,8 @@
-var slotstds = []
-var slotwls = []
+var file = {}
+details = document.getElementById("details")
 var slotnames = [];
-var slotlimits = [];
-var slotnum = 0;
-var rejected = [];
-
-for (var c = 0; c<100; c++){
-    slotstds.push([]);
-    slotwls.push([])
-}
+var slotlimits = {};
+var students = [];
 
 class Stud{
     constructor(name,first,second,third,current,time){
@@ -44,129 +38,118 @@ class Stud{
     }
 }
 
-document.addEventListener('DOMContentLoaded', function(){
-       
-    document.querySelector('form').onsubmit = function(){
-        
-        let flag = false;
-        document.querySelectorAll('.in').forEach(function(element){
-            if (element.name === 'file'){
-                if (document.querySelector('#file').value === undefined){
-                    flag = true;
-                }
-            }else if (!document.querySelector(`#${element.name}`).value.length > 0){
-                flag = true;
-            }
-        })
-        
-        if(flag){
-            alert('Please fill up all fields');
-            return false;
-        }
-        
-        const file = document.querySelector('#file').files[0];
-        const filename = document.querySelector('#file').value;
+function Upload() {
+    //Reference the FileUpload element.
+    var fileUpload = document.getElementById("file");
 
-        if (filename.substr(filename.lastIndexOf('.') + 1).toLowerCase() !== 'csv'){
-            alert('Please upload a .csv file');
-            return false;
-        }
+    //Validate whether File is valid Excel file.
+    var regex = /^([a-zA-Z0-9\s_\\.\-:])+(.xls|.xlsx)$/;
+    if (regex.test(fileUpload.value.toLowerCase())) {
+        if (typeof (FileReader) != "undefined") {
+            var reader = new FileReader();
 
-        slotnum = document.querySelector('#slotnum').value;
-        const slotname = document.querySelector('#slotnames').value;
-        const slotlimit = document.querySelector('#limits').value;
-        var temp = '';
-        var data = [];
-        var students = [];
-
-        for (i = 0; i < slotname.length; i++){
-            if (slotname[i] === ','){
-                slotnames.push(temp);
-                temp = '';
-            }else{
-                temp += slotname[i];
-            }
-        }
-        
-        slotnames.push(temp);
-        temp = '';
-
-        if (slotnames.length != slotnum){
-            alert('The number of slot names and the number of slots do not match.');
-            return false;
-        }
-
-        for (i = 0; i < slotlimit.length; i++){
-            if (slotlimit[i] === ','){
-                slotlimits.push(temp);
-                temp = '';
-            }else{
-                temp += slotlimit[i];
-            }
-        }
-
-        slotlimits.push(temp);
-        temp = '';
-
-        if (slotlimits.length != slotnum){
-            alert('The number of slot limits and the number of slots do not match.');
-            return false;
-        }
-
-        var reader = new FileReader();
-        reader.readAsText(file);
-        reader.onload = function(e){
-            var csv = e.target.result;
-            data = $.csv.toArrays(csv).slice(1);
-            for (var i = 0; i<data.length; i++){
-                var name = '';
-                var first = 99;
-                var second = 99;
-                var third = 99;
-                var current = -1;
-                for (var x = 0; x<data[i].length; x++){
-                    if (x==2) name = data[i][2];
-                    else if (x==3){
-                        for (var s = 0; s<slotnames.length; s++){
-                            if (slotnames[s] == data[i][3]) current = s;
-                        }
+            //For Browsers other than IE.
+            if (reader.readAsBinaryString) {
+                reader.onload = function (e) {
+                    ProcessExcel(e.target.result);
+                };
+                reader.readAsBinaryString(fileUpload.files[0]);
+            } else {
+                //For IE Browser.
+                reader.onload = function (e) {
+                    var data = "";
+                    var bytes = new Uint8Array(e.target.result);
+                    for (var i = 0; i < bytes.byteLength; i++) {
+                        data += String.fromCharCode(bytes[i]);
                     }
-                    else if (data[i][x] == '1st choice') first = x-4;
-                    else if (data[i][x] == '2nd choice') second = x-4;
-                    else if (data[i][x] == '3rd choice') third = x-4;
-                }
-                var student = new Stud(name,first,second,third,current,i+1);
-                students.push(student);
+                    ProcessExcel(data);
+                };
+                reader.readAsArrayBuffer(fileUpload.files[0]);
             }
-            
-            students.sort(function(a,b){
-                return (a.time >= b.time) ? 1:-1;
-            })
-            
-            for (var d = 0; d<students.length; d++){
-                students[d].assign();
-            }
-            giveresult();
+        } else {
+            alert("This browser does not support HTML5.");
         }
-        
+    } else {
+        alert("Please upload a valid Excel file.");
+    }
+};
 
-        return false;
+function ProcessExcel(data) {
+    details.style.display = "block";
+    document.getElementById("sort").style.display = "block";
 
+    var workbook = XLSX.read(data, {
+        type: 'binary'
+    });
+
+    var firstSheet = workbook.SheetNames[0];
+
+    file = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[firstSheet]);
+
+    for (var i = 0; i<file.length; i++){
+        var row = file[i];
+
+        var name = '';
+        var first = '';
+        var second = '';
+        var third = '';
+        var current = '';
+
+        if (["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].includes((row["Child's current session (in 2021)"]).slice(0,3)) && !slotnames.includes(row["Child's current session (in 2021)"])){
+            slotnames.push(row["Child's current session (in 2021)"]);
+        }
+        for (let session in row) {
+            if (["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].includes(session.slice(0,3)) && !slotnames.includes(session)){
+                slotnames.push(session);
+            }
+            if (row[session].includes("1st")){
+                first = session;
+            }else if (row[session].includes("2nd")){
+                second = session;
+            }else if (row[session].includes("3rd")){
+                third = session;
+            }else if (session.includes("current")){
+                current = row[session];
+            }else if (session.includes("name")){
+                name = row[session];
+            }
+        }
+
+        var student = new Stud(name,first,second,third,current,i+1);
+        students.push(student);
     }
 
-})
+    for (let slot in slotnames){
+        slotoption = document.createElement("tr");
 
-function giveresult(){
-    var html = '';
-    for (var slot = 0; slot < slotnum; slot++){
-        html += '<h3>' + slotnames[slot] + '</h3>'
-        for (var std = 0; std < slotstds[slot].length; std++) html += '<br>' + slotstds[slot][std];
-        html += '<br>';
-        for (var std = 0; std < slotwls[slot].length; std++) html += '<br> WLS.' + slotwls[slot][std];
-        html += '<br>';
+        slotname = document.createElement("td");
+        limit = document.createElement("td");
+        limitinput = document.createElement("input")
+
+        limit.classList.add("limits");
+        limitinput.type = "number";
+        limitinput.value = 10;
+        limitinput.min = "1";
+        limitinput.max = "30";
+        limitinput.id = "limit" + slot;
+
+        slotname.innerHTML = slotnames[slot];
+        limit.appendChild(limitinput);
+
+        slotoption.appendChild(slotname);
+        slotoption.appendChild(limit);
+
+        details.appendChild(slotoption);
     }
-    html+= '<h3> Rejected </h3>'
-    for (var std = 0; std < rejected.length; std++) html += '<br>' + rejected[std];
-    document.querySelector('#results').innerHTML = html;
-    document.querySelector('#results').style.height = 'auto';
+
+};
+
+function sort(){
+    for (let slot in slotnames){
+        var limit = document.getElementById("limit" + slot).value
+        slotlimits[slotnames[slot]] = limit;
+    }
+    console.log(slotlimits);
+
+
 }

@@ -1,34 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <title>CGS sorting system</title>
-    <script src = 'code.js'></script>
-    <script src="JQuery.js"></script>
-    <script src="jquery-csv.js"></script>
-    <link rel='stylesheet' href='style.css'>
-</head>
+
 <header>
     <h1> CGS Sorting System</h1>
     
 </header>
 <body>
     <br>
-    <form>
-        Upload file. Ensure file is in .csv format, which can be obtained by exporting excel sheet in the 'Comma-separated values' file format.
-        <br /><br /> <input class = 'in' type='file' id='file' name='file' placeholder= 'filename.csv'>
-        <br /><br />  Number of slots:
-        <input class = 'in' type='text' id='slotnum' name='slotnum' placeholder='Number of slots'>
-        <br /><br /> Names of slots as appearing in excel sheet, with a comma between each name (no spaces next to commas):
-        <input class = 'in' type='text' id='slotnames' name='slotnames' placeholder = 'Slot names'>
-        <br /><br /> Student limits of slots respective to the order of the names given above, with a comma between each name (no spaces next to commas):
-        <input class = 'in' type='text' id='limits' name='limits' placeholder = 'Slot limits'>
-        <br /><br /> <input type='submit' id = 'submit' value='Sort'>
-    </form>
+    Upload file. Ensure file is in .csv format, which can be obtained by exporting excel sheet in the 'Comma-separated values' file format.
+    <br><br> <input class = 'in' type='file' id='file' name='file' placeholder= 'filename.csv'>
 
-    <br /><br />
-    <div id='results'>
+    <br><br> <input type='button' id = 'submit' value='Upload' onclick="Upload()">
+
+    <br><br>
+    <table id='details'>
+        <tr>
+            <th>
+                Session
+            </th>
+            <th>
+                Limit
+            </th>
+        </tr>
+    </table>
+
+    <br><br> <input type='button' id = 'sort' value='Sort' onclick="sort()">
+
+    <br><br>
+    <div id='dvExcel'>
         Fill in all the fields before sorting
         
     </div>
 </body>
+
+<title>CGS sorting system</title>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.13.5/xlsx.full.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.13.5/jszip.js"></script>
+<script src = 'code.js'></script>
+<script src="JQuery.js"></script>
+<script src="jquery-csv.js"></script>
+<link rel='stylesheet' href='style.css'>
+
 </html>
