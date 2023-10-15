@@ -11,7 +11,7 @@ var newyearnewslots = []
 var rejected = [];
 var slotstds = {}
 var slotwls = {}
-var maxwl = 15; /* slot waitlist max*/
+var maxwl = 30; /* slot waitlist max*/
 
 class Stud{
     constructor(name,first,second,third,current,time){
